@@ -1,0 +1,58 @@
+x-lab2: &lab2
+  build:
+    context: .
+  volumes:
+    - .:/home/student/lab2
+  depends_on:
+    rabbitmq:
+      condition: service_healthy
+  networks:
+    - main
+
+services:
+  lab2_producer:
+    <<: *lab2
+    stdin_open: true
+    tty: true
+    command: sleep infinity
+
+  computer_ruby:
+    <<: *lab2
+    command: ruby /home/student/lab2/ruby_computer.rb
+    restart: unless-stopped
+
+  computer_python:
+    <<: *lab2
+    command: python3 /home/student/lab2/python_computer.py
+    restart: unless-stopped
+
+  computer_java:
+    <<: *lab2
+    command: >
+      bash -c "mkdir -p /home/student/lab2/java/lib && cd /home/student/lab2/java/lib &&
+      test -f amqp-client-5.20.0.jar || curl -fsSLO https://repo1.maven.org/maven2/com/rabbitmq/amqp-client/5.20.0/amqp-client-5.20.0.jar &&
+      test -f slf4j-api-2.0.9.jar || curl -fsSLO https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar &&
+      test -f slf4j-simple-2.0.9.jar || curl -fsSLO https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/2.0.9/slf4j-simple-2.0.9.jar &&
+      javac -cp 'amqp-client-5.20.0.jar:slf4j-api-2.0.9.jar' -d /home/student/lab2/java /home/student/lab2/java/Computer.java &&
+      java -cp '/home/student/lab2/java:/home/student/lab2/java/lib/amqp-client-5.20.0.jar:/home/student/lab2/java/lib/slf4j-api-2.0.9.jar:/home/student/lab2/java/lib/slf4j-simple-2.0.9.jar' Computer"
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - main
+
+networks:
+  main:

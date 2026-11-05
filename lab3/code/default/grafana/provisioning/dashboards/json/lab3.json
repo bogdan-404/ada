@@ -1,0 +1,84 @@
+{
+  "title": "ADA Lab3 - 999.md Scraper",
+  "uid": "ada-lab3",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "CPU load (node)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "node_load1",
+          "legendFormat": "load1"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Memorie ocupata (node)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes",
+          "legendFormat": "used"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "type": "timeseries",
+      "title": "Spatiu disk folosit (node)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "node_filesystem_size_bytes{job=\"node\",fstype!~\"tmpfs|overlay\"} - node_filesystem_avail_bytes{job=\"node\",fstype!~\"tmpfs|overlay\"}",
+          "legendFormat": "{{mountpoint}} used"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request-uri scraper / min",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "rate(scraper_http_requests_total[1m]) * 60",
+          "legendFormat": "http req/min"
+        },
+        {
+          "expr": "rate(scraper_runs_total[1m]) * 60",
+          "legendFormat": "runs/min"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Memorie proces scraper",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes{job=\"scraper\"}",
+          "legendFormat": "RSS"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "type": "stat",
+      "title": "Anunturi in DB",
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 24 },
+      "targets": [{ "expr": "scraper_adverts_in_db" }]
+    },
+    {
+      "type": "stat",
+      "title": "Anunturi noi (total)",
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 24 },
+      "targets": [{ "expr": "scraper_new_adverts_total" }]
+    }
+  ]
+}
